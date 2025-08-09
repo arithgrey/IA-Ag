@@ -67,6 +67,13 @@ Todos los desarrollos **DEBEN** seguir los principios SOLID:
 - **Mantén simplicidad** en la arquitectura
 - **Usa ORM de Django** directamente
 
+### 10. Documentación de APIs con Swagger/OpenAPI
+- **TODAS las APIs DEBEN** estar documentadas con Swagger
+- **Usa drf-yasg** para generar documentación automática
+- **Incluye ejemplos** de request/response
+- **Documenta parámetros** y códigos de respuesta
+- **Mantén documentación actualizada** con cada cambio
+
 ## 🚀 Implementación Práctica
 
 ### Ejemplo de Aplicación TDD:
@@ -106,9 +113,106 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'name']
+    
+    def create(self, validated_data):
+        return User.objects.create(**validated_data)
 
-# ❌ NO usar Repository pattern
-# class UserRepository:
-#     def find_by_email(self, email):
-#         pass
+# Uso en ViewSet
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+```
+
+### Ejemplo de Documentación Swagger:
+```python
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    
+    @swagger_auto_schema(
+        operation_description="Crear un nuevo usuario",
+        request_body=UserSerializer,
+        responses={
+            201: openapi.Response(
+                description="Usuario creado exitosamente",
+                schema=UserSerializer
+            ),
+            400: openapi.Response(
+                description="Datos inválidos",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                )
+            )
+        },
+        examples=[
+            openapi.Example(
+                "Ejemplo de creación",
+                value={
+                    "email": "usuario@ejemplo.com",
+                    "name": "Juan Pérez"
+                }
+            )
+        ]
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+```
+
+### Configuración Swagger en settings.py:
+```python
+INSTALLED_APPS = [
+    # ... otras apps
+    'drf_yasg',
+]
+
+# Configuración de Swagger
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+    'JSON_EDITOR': True,
+}
+```
+
+### URLs para Swagger:
+```python
+from django.urls import path, re_path
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework import permissions
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="API de Microservicio",
+        default_version='v1',
+        description="Documentación de la API",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="contact@ejemplo.com"),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
+
+urlpatterns = [
+    # ... otras URLs
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', 
+            schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), 
+         name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), 
+         name='schema-redoc'),
+]
 ``` 

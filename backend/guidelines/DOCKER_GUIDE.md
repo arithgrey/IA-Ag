@@ -114,6 +114,78 @@ networks:
     external: true
 ```
 
+## 🚀 Levantar Todos los Microservicios
+
+### Alias local_up
+Para levantar todos los microservicios de una sola vez (incluyendo frontend) para pruebas de integración:
+
+```bash
+# Levantar todos los microservicios
+local_up
+
+# Verificar estado de todos los servicios
+docker-compose ps
+
+# Ver logs de todos los servicios
+docker-compose logs -f
+```
+
+### Script de Integración Completa
+```bash
+#!/bin/bash
+# Script para levantar todo el ecosistema para pruebas de integración
+
+echo "🚀 Levantando todos los microservicios para pruebas de integración..."
+
+# Crear red si no existe
+docker network create enid_service_network 2>/dev/null || true
+
+# Levantar servicios backend
+echo "📦 Levantando microservicios backend..."
+cd /home/arithgrey/enid_service/services/service_leads && docker-compose up -d
+cd /home/arithgrey/enid_service/services/service-oauth && docker-compose up -d
+cd /home/arithgrey/enid_service/services/service_stock && docker-compose up -d
+cd /home/arithgrey/enid_service/services/service_asistence && docker-compose up -d
+cd /home/arithgrey/enid_service/services/service-references && docker-compose up -d
+cd /home/arithgrey/enid_service/services/service-faqs && docker-compose up -d
+
+# Levantar frontend
+echo "🌐 Levantando frontend..."
+cd /home/arithgrey/enid_service/services/service-store && docker-compose up -d
+
+# Levantar proxy
+echo "🔗 Levantando proxy..."
+cd /home/arithgrey/enid_service/services/service_web && docker-compose up -d
+
+echo "✅ Todos los servicios levantados para pruebas de integración"
+echo "📊 URLs disponibles:"
+echo "  - Frontend: http://localhost:5173"
+echo "  - service_leads: http://localhost:8086"
+echo "  - service-oauth: http://localhost:8087"
+echo "  - service_stock: http://localhost:8088"
+echo "  - service_asistence: http://localhost:8089"
+echo "  - service-references: http://localhost:8090"
+echo "  - service-faqs: http://localhost:8091"
+echo "  - Swagger UI: http://localhost:8086/swagger/"
+```
+
+### Comandos de Verificación
+```bash
+# Verificar que todos los servicios estén corriendo
+docker ps
+
+# Ver logs de un servicio específico
+docker-compose logs -f [service_name]
+
+# Ver logs de todos los servicios
+docker logs $(docker ps -q)
+
+# Verificar conectividad entre servicios
+curl http://localhost:8086/health/
+curl http://localhost:8087/health/
+curl http://localhost:8088/health/
+```
+
 ## 🔴 Redis - Criterios de Uso
 
 ### ¿Cuándo Usar Redis?
@@ -446,4 +518,6 @@ microservice/
 - [ ] ¿Configuraste gunicorn con watchmedo?
 - [ ] ¿Incluiste migraciones en entrypoint.sh?
 - [ ] ¿Evaluaste si Redis es realmente necesario?
-- [ ] ¿Configuraste Redis solo para casos específicos? 
+- [ ] ¿Configuraste Redis solo para casos específicos?
+- [ ] ¿Configuraste el alias local_up para integración?
+- [ ] ¿Verificaste conectividad entre microservicios? 

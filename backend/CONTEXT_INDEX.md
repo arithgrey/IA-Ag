@@ -6,12 +6,13 @@ Este índice sirve como punto de entrada para que los agentes de IA encuentren r
 ## 📚 Documentación Principal
 
 ### Principios Fundamentales
-- **[PRINCIPLES.md](PRINCIPLES.md)** - Principios SOLID, DRY, TDD y stack tecnológico
+- **[PRINCIPLES.md](PRINCIPLES.md)** - Principios SOLID, DRY, TDD, Swagger y stack tecnológico
 - **[patterns/SOLID_PATTERNS.md](patterns/SOLID_PATTERNS.md)** - Ejemplos prácticos de SOLID en Django
 
 ### Guías Específicas
 - **[guidelines/TDD_GUIDE.md](guidelines/TDD_GUIDE.md)** - Guía completa de TDD sin mocks
 - **[guidelines/DOCKER_GUIDE.md](guidelines/DOCKER_GUIDE.md)** - Docker y microservicios con gunicorn + watchmedo + Redis
+- **[guidelines/API_DOCUMENTATION.md](guidelines/API_DOCUMENTATION.md)** - Documentación de APIs con Swagger/OpenAPI
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Arquitectura de microservicios
 
 ### Mapa de Microservicios Backend
@@ -25,6 +26,7 @@ Este índice sirve como punto de entrada para que los agentes de IA encuentren r
 3. **Implementar TDD** → `guidelines/TDD_GUIDE.md`
 4. **Configurar Docker** → `guidelines/DOCKER_GUIDE.md`
 5. **Identificar microservicio backend** → `BACKEND_MICROSERVICES.md`
+6. **Documentar APIs** → `guidelines/API_DOCUMENTATION.md`
 
 ### Para Testing Backend
 - **TDD sin mocks** → `guidelines/TDD_GUIDE.md`
@@ -37,6 +39,13 @@ Este índice sirve como punto de entrada para que los agentes de IA encuentren r
 - **Debugging** → `guidelines/DOCKER_GUIDE.md#debugging-y-desarrollo`
 - **Entrypoint.sh** → `guidelines/DOCKER_GUIDE.md#entrypointsh`
 - **Redis** → `guidelines/DOCKER_GUIDE.md#redis---criterios-de-uso`
+- **local_up alias** → `guidelines/DOCKER_GUIDE.md#alias-local_up`
+
+### Para Documentación de APIs
+- **Configuración Swagger** → `guidelines/API_DOCUMENTATION.md#configuración-inicial`
+- **Documentación ViewSets** → `guidelines/API_DOCUMENTATION.md#documentación-de-viewsets`
+- **Autenticación en Swagger** → `guidelines/API_DOCUMENTATION.md#documentación-de-autenticación`
+- **Testing de documentación** → `guidelines/API_DOCUMENTATION.md#testing-de-documentación`
 
 ### Para Arquitectura Backend
 - **Estructura de microservicios** → `docs/ARCHITECTURE.md`
@@ -62,12 +71,14 @@ Este índice sirve como punto de entrada para que los agentes de IA encuentren r
 - [ ] ¿Preparaste el entorno Docker?
 - [ ] ¿Evaluaste si Redis es realmente necesario?
 - [ ] ¿Identificaste el microservicio backend correcto?
+- [ ] ¿Planificaste la documentación de APIs?
 
 ### Durante el Desarrollo
 - [ ] ¿Escribiste pruebas primero (TDD)?
 - [ ] ¿Evitaste repetir código?
 - [ ] ¿Usaste Serializers en lugar de Repositories?
 - [ ] ¿Incluiste pruebas de integración?
+- [ ] ¿Documentaste APIs con Swagger?
 
 ### Antes de Finalizar
 - [ ] ¿Ejecutaste tests en contenedores?
@@ -76,6 +87,8 @@ Este índice sirve como punto de entrada para que los agentes de IA encuentren r
 - [ ] ¿Revisaste logs del contenedor?
 - [ ] ¿Configuraste Redis solo si es necesario?
 - [ ] ¿Verificaste que no rompe otros servicios backend?
+- [ ] ¿Verificaste que Swagger UI es accesible?
+- [ ] ¿Probaste con local_up para integración completa?
 
 ## 💡 Consejos Rápidos - Backend
 
@@ -103,13 +116,29 @@ Este índice sirve como punto de entrada para que los agentes de IA encuentren r
 - **Usa el puerto correcto** (8086-8091)
 - **Documenta endpoints** nuevos
 
+### Documentación de APIs
+- **TODAS las APIs** deben estar documentadas con Swagger
+- **Usa drf-yasg** para documentación automática
+- **Incluye ejemplos** de request/response
+- **Documenta códigos de respuesta** y parámetros
+- **Mantén documentación actualizada** con cada cambio
+
+### Integración Completa
+- **Usa local_up** para levantar todo el ecosistema
+- **Verifica conectividad** entre microservicios
+- **Prueba integración** con frontend incluido
+- **Monitorea logs** de todos los servicios
+
 ## 🔗 Referencias Rápidas - Backend
 
 ### Comandos Docker Esenciales Backend
 ```bash
-# Desarrollo
+# Desarrollo individual
 docker-compose up --build
 docker-compose logs -f microservice_enid
+
+# Integración completa
+local_up
 
 # Testing
 docker-compose exec microservice_enid python manage.py test
@@ -121,6 +150,15 @@ docker-compose exec microservice_enid python manage.py create_test_data
 
 # Redis (solo si lo usas)
 docker-compose exec redis redis-cli ping
+
+# Verificar Swagger
+curl http://localhost:8086/swagger/
+curl http://localhost:8086/swagger.json
+
+# Verificar integración completa
+docker ps
+curl http://localhost:8086/health/
+curl http://localhost:8087/health/
 ```
 
 ### Estructura de Archivos Backend
@@ -152,6 +190,7 @@ microservice/
 - **Watchmedo**: Auto-reload en desarrollo
 - **Docker**: Containerización
 - **Python 3.8-alpine**: Imagen base
+- **drf-yasg**: Documentación de APIs
 
 ### Puertos de Microservicios Backend
 | Servicio | Puerto | Función |
@@ -162,6 +201,18 @@ microservice/
 | service_asistence | 8089 | Asistente IA |
 | service-references | 8090 | Imágenes |
 | service-faqs | 8091 | FAQs |
+
+### URLs de Integración Completa
+| Servicio | URL | Función |
+|----------|-----|---------|
+| Frontend | http://localhost:5173 | Vue.js frontend |
+| service_leads | http://localhost:8086 | Gestión de leads |
+| service-oauth | http://localhost:8087 | Autenticación |
+| service_stock | http://localhost:8088 | Inventario |
+| service_asistence | http://localhost:8089 | Asistente IA |
+| service-references | http://localhost:8090 | Imágenes |
+| service-faqs | http://localhost:8091 | FAQs |
+| Swagger UI | http://localhost:8086/swagger/ | Documentación APIs |
 
 ## 🔴 Criterios para Redis en Backend
 
@@ -196,4 +247,9 @@ microservice/
 12. **USA** Redis solo para mejorar tiempos de respuesta cuando sea justificado
 13. **IDENTIFICA** el microservicio backend correcto antes de implementar
 14. **VERIFICA** dependencias con service-oauth
-15. **USA** puertos 8086-8091 para servicios backend 
+15. **USA** puertos 8086-8091 para servicios backend
+16. **DOCUMENTA** todas las APIs con Swagger/OpenAPI
+17. **INCLUYE** ejemplos de request/response en la documentación
+18. **MANTÉN** documentación de APIs actualizada con cada cambio
+19. **USA** local_up para pruebas de integración completa
+20. **VERIFICA** conectividad entre microservicios 
